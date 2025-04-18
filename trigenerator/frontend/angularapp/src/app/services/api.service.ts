@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'https://ide-bbefdebbdfedacd323990932fbbecbcccedtwo.premiumproject.examly.io/proxy/3001'; // Adjust if deployed elsewhere
+  private baseUrl = 'https://codegenie-sgqr.onrender.com'; // Adjust if deployed elsewhere
 
   constructor(private http: HttpClient) {}
 
