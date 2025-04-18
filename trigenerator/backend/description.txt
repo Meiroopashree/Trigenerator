@@ -1,0 +1,110 @@
+Title: Plant Nursery Management System
+
+Description: 
+You need to develop the Plant Nursery Management System, a console-based application in C# that simplifies managing plant records. Use a List to store and manage the collection of plants. Implement a menu-driven interface with options to add, display, update, and delete plant information. Ensure error handling with try-catch blocks to manage invalid data inputs, particularly using FormatException.
+
+Classes and Methods
+
+1. Plant Class (Models/Plant.cs)	
+
+Purpose: Represents an individual plant record in the system.
+
+Properties:
+
+PlantID (string): A unique identifier for the plant.
+PlantName (string): The name of the plant.
+Type (string): The type of plant (e.g., Indoor, Outdoor).
+Price (decimal): The price of the plant.
+StockQuantity (int): The number of plants available in stock.
+Access Modifier: public
+
+
+2. Program Class (Program.cs)
+
+Purpose: Acts as the entry point for the application, containing the business logic to manage plant records.
+
+Properties:
+
+plants (List<Plant>): A static list of Plant objects used to manage and store plant records.
+Access Modifier: private
+
+Methods:
+
+Main(string[] args):
+
+Purpose: Handles the application's flow through a menu-driven interface with the following options:
+
+Add Plant: Prompts the user for plant details and adds the plant record.
+Display All Plants: Displays the list of all plant records.
+Update Plant: Updates an existing plant's details based on the Plant ID.
+Delete Plant: Deletes a plant by its ID.
+Exit: Terminates the application.
+Displays the message "Invalid choice. Please enter a number between 1 and 5." if the input is outside the range of 1–5.
+
+
+
+AddPlant(Plant plant)
+
+Purpose: Adds a new plant to the plants list.
+
+Access Modifier: public
+
+Declaration Modifier: static
+
+Return Type: void
+
+Validation Logic:
+
+Ensures the PlantID is unique in the list.
+				Error Message: "Plant ID already exists. Please use a unique Plant ID."
+
+Success Message: "Plant added successfully."
+
+
+DisplayPlants()
+
+Displays all plant records in the list.
+
+Access Modifier: public
+Declaration Modifier: static
+Return Type: void
+Success Message: Prints each plant's details in the format:
+"Plant ID: {plant.PlantID}, Name: {plant.PlantName}, Type: {plant.Type}, Price: {plant.Price}, Stock: {plant.StockQuantity}"
+Error Message: "No plants found." (if the list is empty).
+
+
+UpdatePlant(string plantID, Plant updatedPlant)
+
+Updates the details of an existing plant based on the provided plant ID.
+
+Access Modifier: public
+Declaration Modifier: static
+Return Type: void
+Success Message: "Plant updated successfully."
+Error Message: "No matching plant found with the provided Plant ID." (if the PlantID is not found).
+
+
+DeletePlant(string plantID)
+
+Removes a plant record from the list based on the provided plant ID.
+
+Access Modifier: public
+Declaration Modifier: static
+Return Type: void
+Success Message: "Plant deleted successfully."
+Error Message: "No matching plant found with the provided Plant ID." (if the PlantID is not found).
+
+
+Menu Options:
+
+	1. Add Plant: prompts for the plant's details. After gathering the details, it calls the AddPlant(Plant plant) method to add the new plant record to the list
+
+	2. Display All Plants: Displays all plant records by calling the DisplayPlants() method.
+
+	3. Update Plant: Prompts for the Plant ID and Plant details to update. After gathering the Plant ID, it will call the UpdatePlant(string plantID, Plant updatedPlant) method to update the plant details.
+
+	4. Delete Plant: Prompts for the Plant ID. After gathering the Plant ID, it will call the DeletePlant(string plantID) method to remove the plant record from the list.
+
+	5. Exit: Exits the application with the message: "Exiting the application..."
+
+Invalid Input: Displays the message: "Invalid choice. Please enter a number between 1 and 5."

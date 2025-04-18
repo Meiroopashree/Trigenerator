@@ -1,0 +1,169 @@
+// File: Models/Plant.cs
+namespace dotnetapp.Models
+{
+    public class Plant
+    {
+        public string PlantID { get; set; } // Unique identifier for the plant
+        public string PlantName { get; set; } // Name of the plant
+        public string Type { get; set; } // Type of plant (Indoor/Outdoor)
+        public decimal Price { get; set; } // Price of the plant
+        public int StockQuantity { get; set; } // Number of plants in stock
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using dotnetapp.Models;
+
+namespace dotnetapp
+{
+    public class Program
+    {
+        private static List<Plant> plants = new List<Plant>();
+
+        public static void Main(string[] args)
+        {
+            bool exit = false;
+
+            while (!exit)
+            {
+                Console.WriteLine("\nPlant Nursery Management Menu");
+                Console.WriteLine("1. Add Plant");
+                Console.WriteLine("2. Display All Plants");
+                Console.WriteLine("3. Update Plant");
+                Console.WriteLine("4. Delete Plant");
+                Console.WriteLine("5. Exit");
+                Console.Write("Enter your choice (1-5): ");
+
+                switch (Console.ReadLine())
+                {
+                    case "1":
+                        try
+                        {
+                            Plant newPlant = new Plant
+                            {
+                                PlantID = ReadInput("Enter Plant ID: "),
+                                PlantName = ReadInput("Enter Plant Name: "),
+                                Type = ReadInput("Enter Plant Type (Indoor/Outdoor): "),
+                                Price = decimal.Parse(ReadInput("Enter Plant Price: ")),
+                                StockQuantity = int.Parse(ReadInput("Enter Stock Quantity: "))
+                            };
+                            AddPlant(newPlant);
+                        }
+                        catch (FormatException ex)
+                        {
+                            Console.WriteLine("Input error: " + ex.Message);
+                        }
+                        break;
+
+                    case "2":
+                        DisplayPlants();
+                        break;
+
+                    case "3":
+                        string plantIDToUpdate = ReadInput("Enter Plant ID to update: ");
+                        try
+                        {
+                            Plant updatedPlant = new Plant
+                            {
+                                PlantName = ReadInput("Enter New Plant Name: "),
+                                Type = ReadInput("Enter New Plant Type (Indoor/Outdoor): "),
+                                Price = decimal.Parse(ReadInput("Enter New Plant Price: ")),
+                                StockQuantity = int.Parse(ReadInput("Enter New Stock Quantity: "))
+                            };
+                            UpdatePlant(plantIDToUpdate, updatedPlant);
+                        }
+                        catch (FormatException ex)
+                        {
+                            Console.WriteLine("Input error: " + ex.Message);
+                        }
+                        break;
+
+                    case "4":
+                        string plantIDToDelete = ReadInput("Enter Plant ID to delete: ");
+                        DeletePlant(plantIDToDelete);
+                        break;
+
+                    case "5":
+                        Console.WriteLine("Exiting the application...");
+                        exit = true;
+                        break;
+
+                    default:
+                        Console.WriteLine("Invalid choice. Please enter a number between 1 and 5.");
+                        break;
+                }
+            }
+        }
+
+        private static string ReadInput(string prompt)
+        {
+            Console.Write(prompt);
+            return Console.ReadLine();
+        }
+
+        public static void AddPlant(Plant plant)
+        {
+            foreach (var p in plants)
+            {
+                if (p.PlantID == plant.PlantID)
+                {
+                    Console.WriteLine("Plant ID already exists. Please use a unique Plant ID.");
+                    return;
+                }
+            }
+
+            plants.Add(plant);
+            Console.WriteLine("Plant added successfully.");
+        }
+
+        public static void DisplayPlants()
+        {
+            if (plants.Count == 0)
+            {
+                Console.WriteLine("No plants found.");
+                return;
+            }
+
+            foreach (var plant in plants)
+            {
+                Console.WriteLine($"Plant ID: {plant.PlantID}, Name: {plant.PlantName}, Type: {plant.Type}, Price: {plant.Price}, Stock: {plant.StockQuantity}");
+            }
+        }
+
+        public static void UpdatePlant(string plantID, Plant updatedPlant)
+        {
+            for (int i = 0; i < plants.Count; i++)
+            {
+                if (plants[i].PlantID == plantID)
+                {
+                    plants[i].PlantName = updatedPlant.PlantName;
+                    plants[i].Type = updatedPlant.Type;
+                    plants[i].Price = updatedPlant.Price;
+                    plants[i].StockQuantity = updatedPlant.StockQuantity;
+
+                    Console.WriteLine("Plant updated successfully.");
+                    return;
+                }
+            }
+
+            Console.WriteLine("No matching plant found with the provided Plant ID.");
+        }
+
+        public static void DeletePlant(string plantID)
+        {
+            for (int i = 0; i < plants.Count; i++)
+            {
+                if (plants[i].PlantID == plantID)
+                {
+                    plants.RemoveAt(i);
+                    Console.WriteLine("Plant deleted successfully.");
+                    return;
+                }
+            }
+
+            Console.WriteLine("No matching plant found with the provided Plant ID.");
+        }
+    }
+}

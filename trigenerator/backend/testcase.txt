@@ -1,0 +1,306 @@
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using dotnetapp.Models;
+ 
+namespace dotnetapp.Tests
+{
+    [TestFixture]
+    public class PlantManagementTests
+    {
+        [SetUp]
+        public void SetUp()
+        {
+            // Clear the plants List before each test
+            var plantsField = typeof(Program).GetField("plants", BindingFlags.NonPublic | BindingFlags.Static);
+            var plants = plantsField?.GetValue(null) as List<Plant>;
+            plants?.Clear();
+ 
+            // Reset console output
+            Console.SetOut(new System.IO.StringWriter());
+        }
+ 
+        [Test, Order(1)]
+        public void Test_Plant_Class_Should_Exist()
+        {
+            Type plantType = typeof(Plant);
+            Assert.IsNotNull(plantType, "Plant class should exist.");
+        }
+ 
+        [Test, Order(2)]
+        public void Test_Plant_Properties_Should_Exist()
+        {
+            // Arrange
+            Type plantType = typeof(Plant);
+ 
+            // Act
+            PropertyInfo plantIDProperty = plantType.GetProperty("PlantID");
+            PropertyInfo plantPlantNameProperty = plantType.GetProperty("PlantName");
+            PropertyInfo typeProperty = plantType.GetProperty("Type");
+            PropertyInfo priceProperty = plantType.GetProperty("Price");
+            PropertyInfo stockQuantityProperty = plantType.GetProperty("StockQuantity");
+ 
+            // Assert
+            Assert.IsNotNull(plantIDProperty, "PlantID property should exist.");
+            Assert.IsNotNull(plantPlantNameProperty, "PlantName property should exist.");
+            Assert.IsNotNull(typeProperty, "Type property should exist.");
+            Assert.IsNotNull(priceProperty, "Price property should exist.");
+            Assert.IsNotNull(stockQuantityProperty, "StockQuantity property should exist.");
+        }
+ 
+        [Test, Order(3)]
+        public void Test_AddPlant_Method_Should_Exist()
+        {
+            var method = typeof(Program).GetMethod("AddPlant");
+            Assert.IsNotNull(method, "The AddPlant method should exist.");
+        }
+ 
+        [Test, Order(4)]
+        public void Test_DisplayPlants_Method_Should_Exist()
+        {
+            var method = typeof(Program).GetMethod("DisplayPlants");
+            Assert.IsNotNull(method, "The DisplayPlants method should exist.");
+        }
+ 
+        [Test, Order(5)]
+        public void Test_UpdatePlant_Method_Should_Exist()
+        {
+            var method = typeof(Program).GetMethod("UpdatePlant");
+            Assert.IsNotNull(method, "The UpdatePlant method should exist.");
+        }
+ 
+        [Test, Order(6)]
+        public void Test_DeletePlant_Method_Should_Exist()
+        {
+            var method = typeof(Program).GetMethod("DeletePlant");
+            Assert.IsNotNull(method, "The DeletePlant method should exist.");
+        }
+ 
+        [Test, Order(7)]
+        public void Test_AddPlant_Should_Add_To_List()
+        {
+            // Create plant object using reflection
+            Type plantType = typeof(Plant);
+            var plant = Activator.CreateInstance(plantType);
+            plantType.GetProperty("PlantID").SetValue(plant, "P1");
+            plantType.GetProperty("PlantName").SetValue(plant, "Snake Plant");
+            plantType.GetProperty("Type").SetValue(plant, "Indoor");
+            plantType.GetProperty("Price").SetValue(plant, 15.99m);
+            plantType.GetProperty("StockQuantity").SetValue(plant, 25);
+ 
+            // Act
+            var addPlantMethod = typeof(Program).GetMethod("AddPlant");
+            Assert.IsNotNull(addPlantMethod, "The AddPlant method should exist in the Program class.");
+ 
+            using (var consoleOutput = new ConsoleOutput())
+            {
+                addPlantMethod.Invoke(null, new object[] { plant });
+ 
+                // Capture console output
+                string output = consoleOutput.GetOutput();
+                Assert.IsTrue(output.ToLower().Contains("plant added successfully"), "Console output should contain 'Plant added successfully'.");
+            }
+ 
+            // Assert
+            var plantsField = typeof(Program).GetField("plants", BindingFlags.NonPublic | BindingFlags.Static);
+            var plants = plantsField.GetValue(null) as List<Plant>;
+ 
+            Assert.IsNotNull(plants, "Plants linked list should exist.");
+            Assert.IsTrue(plants.Any(p => p.PlantID == "P1"), "Plant should be added to the linked list.");
+        }
+ 
+        [Test, Order(8)]
+        public void Test_DisplayPlants_Should_Display_All()
+        {
+            // Create plant objects using reflection
+            Type plantType = typeof(Plant);
+            var plant1 = Activator.CreateInstance(plantType);
+           plantType.GetProperty("PlantID").SetValue(plant1, "P1");
+            plantType.GetProperty("PlantName").SetValue(plant1, "Snake Plant");
+            plantType.GetProperty("Type").SetValue(plant1, "Indoor");
+            plantType.GetProperty("Price").SetValue(plant1, 15.99m);
+            plantType.GetProperty("StockQuantity").SetValue(plant1, 25);
+ 
+            var plant2 = Activator.CreateInstance(plantType);
+            plantType.GetProperty("PlantID").SetValue(plant2, "P2");
+            plantType.GetProperty("PlantName").SetValue(plant2, "Rose Bush");
+            plantType.GetProperty("Type").SetValue(plant2, "Outdoor");
+            plantType.GetProperty("Price").SetValue(plant2, 20.50m);
+            plantType.GetProperty("StockQuantity").SetValue(plant2, 15);
+ 
+            var addPlantMethod = typeof(Program).GetMethod("AddPlant");
+            addPlantMethod.Invoke(null, new object[] { plant1 });
+            addPlantMethod.Invoke(null, new object[] { plant2 });
+ 
+            using (var consoleOutput = new ConsoleOutput())
+            {
+                var displayPlantsMethod = typeof(Program).GetMethod("DisplayPlants");
+                displayPlantsMethod.Invoke(null, null);
+                string output = consoleOutput.GetOutput();
+ 
+                Assert.IsTrue(output.Contains("Snake Plant"), "Should contain Snake Plant.");
+                Assert.IsTrue(output.Contains("Rose Bush"), "Should contain Rose Bush.");
+            }
+        }
+ 
+        [Test, Order(9)]
+        public void Test_DisplayPlants_Should_Handle_Nonexistent_Empty()
+        {
+            // Arrange
+            var plantsField = typeof(Program).GetField("plants", BindingFlags.NonPublic | BindingFlags.Static);
+            var plants = plantsField.GetValue(null) as List<Plant>;
+            plants.Clear(); // Ensure no plants exist
+ 
+            using (var consoleOutput = new ConsoleOutput())
+            {
+                // Act
+                var displayPlantsMethod = typeof(Program).GetMethod("DisplayPlants");
+                displayPlantsMethod.Invoke(null, null);
+ 
+                // Assert
+                string output = consoleOutput.GetOutput().Trim();
+                Assert.AreEqual("No plants found.", output, "Should display 'No plants found.' when the plant list is empty.");
+            }
+        }
+ 
+        [Test, Order(10)]
+        public void Test_UpdatePlant_Should_Modify_Existing_Plant()
+        {
+            // Create old plant and updated plant objects using reflection
+            Type plantType = typeof(Plant);
+            var oldPlant = Activator.CreateInstance(plantType);
+            plantType.GetProperty("PlantID").SetValue(oldPlant, "P1");
+            plantType.GetProperty("PlantName").SetValue(oldPlant, "Snake Plant");
+            plantType.GetProperty("Type").SetValue(oldPlant, "Indoor");
+            plantType.GetProperty("Price").SetValue(oldPlant, 15.99m);
+            plantType.GetProperty("StockQuantity").SetValue(oldPlant, 25);
+ 
+            var updatedPlant = Activator.CreateInstance(plantType);
+            plantType.GetProperty("PlantName").SetValue(updatedPlant, "Aloe Vera");
+            plantType.GetProperty("Type").SetValue(updatedPlant, "Indoor");
+            plantType.GetProperty("Price").SetValue(updatedPlant, 12.75m);
+            plantType.GetProperty("StockQuantity").SetValue(updatedPlant, 30);
+ 
+            var addPlantMethod = typeof(Program).GetMethod("AddPlant");
+            Assert.IsNotNull(addPlantMethod, "The AddPlant method should exist in the Program class.");
+            addPlantMethod.Invoke(null, new object[] { oldPlant });
+ 
+            var updatePlantMethod = typeof(Program).GetMethod("UpdatePlant");
+            Assert.IsNotNull(updatePlantMethod, "The UpdatePlant method should exist in the Program class.");
+ 
+            using (var consoleOutput = new ConsoleOutput())
+            {
+                updatePlantMethod.Invoke(null, new object[] { "P1", updatedPlant });
+ 
+                // Capture console output
+                string output = consoleOutput.GetOutput();
+                Assert.IsTrue(output.ToLower().Contains("plant updated successfully"), "Console output should contain 'Plant updated successfully'.");
+            }
+ 
+            var plantsField = typeof(Program).GetField("plants", BindingFlags.NonPublic | BindingFlags.Static);
+            var plants = plantsField.GetValue(null) as List<Plant>;
+ 
+            Assert.IsNotNull(plants, "Plants linked list should exist.");
+            Assert.IsTrue(plants.Any(p => p.PlantName == "Aloe Vera"), "Plant should be updated.");
+        }
+ 
+ 
+        [Test, Order(11)]
+        public void Test_UpdatePlant_Should_Handle_Nonexistent_Plant()
+        {
+            using (var consoleOutput = new ConsoleOutput())
+            {
+                // Act
+                var updatePlantMethod = typeof(Program).GetMethod("UpdatePlant");
+ 
+                // Create a new plant object to use for updating
+                Type plantType = typeof(Plant);
+               var updatedPlant = Activator.CreateInstance(plantType);
+                plantType.GetProperty("PlantName").SetValue(updatedPlant, "Aloe Vera");
+                plantType.GetProperty("Type").SetValue(updatedPlant, "Indoor");
+                plantType.GetProperty("Price").SetValue(updatedPlant, 12.75m);
+                plantType.GetProperty("StockQuantity").SetValue(updatedPlant, 30);
+ 
+                // Try to update a non-existent plant
+                updatePlantMethod.Invoke(null, new object[] { "NonExistentID", updatedPlant });
+ 
+                // Assert
+                string output = consoleOutput.GetOutput().Trim();
+                Assert.IsTrue(output.Contains("No matching plant found"), "Output should contain 'No matching plant found.' when trying to update a non-existent plant.");
+            }
+        }
+ 
+        [Test, Order(12)]
+        public void Test_DeletePlant_Should_Remove_From_List()
+        {
+            // Create plant object using reflection
+            Type plantType = typeof(Plant);
+            var plant = Activator.CreateInstance(plantType);
+            plantType.GetProperty("PlantID").SetValue(plant, "P1");
+            plantType.GetProperty("PlantName").SetValue(plant, "Snake Plant");
+            plantType.GetProperty("Type").SetValue(plant, "Indoor");
+            plantType.GetProperty("Price").SetValue(plant, 15.99m);
+            plantType.GetProperty("StockQuantity").SetValue(plant, 25);
+ 
+            var addPlantMethod = typeof(Program).GetMethod("AddPlant");
+            Assert.IsNotNull(addPlantMethod, "The AddPlant method should exist in the Program class.");
+            addPlantMethod.Invoke(null, new object[] { plant });
+ 
+            var deletePlantMethod = typeof(Program).GetMethod("DeletePlant");
+            Assert.IsNotNull(deletePlantMethod, "The DeletePlant method should exist in the Program class.");
+ 
+            using (var consoleOutput = new ConsoleOutput())
+            {
+                deletePlantMethod.Invoke(null, new object[] { "P1" });
+ 
+                // Capture console output
+                string output = consoleOutput.GetOutput();
+                Assert.IsTrue(output.ToLower().Contains("plant deleted successfully"), "Console output should contain 'Plant deleted successfully'.");
+            }
+ 
+            var plantsField = typeof(Program).GetField("plants", BindingFlags.NonPublic | BindingFlags.Static);
+            var plants = plantsField.GetValue(null) as List<Plant>;
+ 
+            Assert.IsNotNull(plants, "Plants linked list should exist.");
+            Assert.IsFalse(plants.Any(p => p.PlantID == "P1"), "Plant should be removed from the linked list.");
+        }
+ 
+ 
+        [Test, Order(13)]
+        public void Test_DeletePlant_Should_Handle_Nonexistent_Plant()
+        {
+            using (var consoleOutput = new ConsoleOutput())
+            {
+                var deletePlantMethod = typeof(Program).GetMethod("DeletePlant");
+                deletePlantMethod.Invoke(null, new object[] { "UnknownID" });
+ 
+                string output = consoleOutput.GetOutput();
+                Assert.IsTrue(output.Contains("No matching plant found"), "Should display messtype for nonexistent plant.");
+            }
+        }
+ 
+        // Helper class to capture console output
+        public class ConsoleOutput : IDisposable
+        {
+            private readonly System.IO.StringWriter _stringWriter;
+            private readonly System.IO.TextWriter _originalOutput;
+ 
+            public ConsoleOutput()
+            {
+                _stringWriter = new System.IO.StringWriter();
+                _originalOutput = Console.Out;
+                Console.SetOut(_stringWriter);
+            }
+ 
+            public string GetOutput() => _stringWriter.ToString();
+ 
+            public void Dispose()
+            {
+                Console.SetOut(_originalOutput);
+                _stringWriter.Dispose();
+            }
+        }
+    }
+}

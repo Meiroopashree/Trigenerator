@@ -1,0 +1,84 @@
+<!-- Loading indicator -->
+<div *ngIf="loading" class="loading-overlay">
+  <div class="spinner">Loading...</div>
+</div>
+
+<div class="container">
+  <h2>Tri Generator MS1</h2>
+
+  <!-- Dropdown for selecting collection type -->
+  <label for="collectionSelect">Select Collection Type:</label>
+  <select id="collectionSelect" [(ngModel)]="selectedCollection">
+    <option value="">-- Select --</option>
+    <option *ngFor="let option of collectionOptions" [value]="option">
+      {{ option }}
+    </option>
+  </select>
+
+  <!-- Button for suggestions -->
+  <button (click)="getSuggestions()">Get Suggestions</button>
+
+<!-- Suggestions Dropdown -->
+<div *ngIf="modelSuggestions.length">
+  <h3>Suggestions</h3>
+  <label for="modelDropdown">Select a Model:</label>
+  <select id="modelDropdown" [(ngModel)]="selectedModel">
+    <option value="">-- Select Model --</option>
+    <option *ngFor="let suggestion of modelSuggestions" [value]="suggestion">
+      {{ suggestion }}
+    </option>
+  </select>
+</div>
+
+<!-- Generate Description Button -->
+<div *ngIf="selectedModel && !generatedDescription">
+  <h3>Selected Model: {{ selectedModel }}</h3>
+  <button (click)="getDescription()">Generate Description</button>
+</div>
+
+
+  <!-- Toggle Description -->
+  <div *ngIf="generatedDescription">
+    <h3>
+      Description
+      <button (click)="toggleDescription()">
+        {{ showDescription ? 'Hide' : 'Show' }}
+      </button>
+    </h3>
+    <pre *ngIf="showDescription">{{ generatedDescription }}</pre>
+  </div>
+
+  <!-- Toggle Solution -->
+  <div *ngIf="generatedDescription">
+    <div *ngIf="!generatedSolution">
+      <button (click)="getSolution()">Generate Solution</button>
+    </div>
+
+    <div *ngIf="generatedSolution">
+      <h3>
+        Solution
+        <button (click)="toggleSolution()">
+          {{ showSolution ? 'Hide' : 'Show' }}
+        </button>
+      </h3>
+      <pre *ngIf="showSolution">{{ generatedSolution }}</pre>
+    </div>
+  </div>
+
+  <!-- Toggle Test Cases -->
+  <div *ngIf="generatedSolution">
+    <div *ngIf="!generatedTestCases">
+      <button (click)="getTestCases()">Generate Test Cases</button>
+    </div>
+
+    <div *ngIf="generatedTestCases">
+      <h3>
+        Test Cases
+        <button (click)="toggleTestCases()">
+          {{ showTestCases ? 'Hide' : 'Show' }}
+        </button>
+      </h3>
+      <pre *ngIf="showTestCases">{{ generatedTestCases }}</pre>
+    </div>
+  </div>
+</div>

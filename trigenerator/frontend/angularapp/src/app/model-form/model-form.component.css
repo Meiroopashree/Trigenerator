@@ -1,0 +1,137 @@
+/* Container for the full component */
+.container {
+    max-width: 700px;
+    margin: 3rem auto;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* Title styling */
+  .container h2 {
+    text-align: center;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Input and button styling */
+  input {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s;
+  }
+  
+  input:focus {
+    border-color: #3b82f6;
+    outline: none;
+  }
+  
+  /* General button styles */
+  button {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.65rem 1.25rem;
+    border-radius: 0.5rem;
+    margin-right: 0.75rem;
+    margin-top: 0.75rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+  }
+  
+  button:hover {
+    background-color: #1e40af;
+  }
+  
+  /* Suggestions section */
+  ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 1rem;
+  }
+  
+  li {
+    background-color: #f1f5f9;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  li:hover {
+    background-color: #e0f2fe;
+  }
+  
+  /* Highlight the selected model */
+  .selected {
+    background-color: #dbeafe;
+    font-weight: bold;
+    border: 1px solid #3b82f6;
+  }
+  
+  /* Section headers */
+  h3 {
+    color: #1e293b;
+    margin-top: 2rem;
+  }
+  
+  /* Preformatted text (for generated content) */
+  pre {
+    background-color: #f8fafc;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    margin-top: 1rem;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s;
+    background-color: white;
+  }
+  
+  select:focus {
+    border-color: #3b82f6;
+    outline: none;
+  }
+  
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .spinner {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #0c3c95;
+    background-color: white;
+    padding: 1rem 2rem;
+    border: 2px solid #0c3c95;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  
