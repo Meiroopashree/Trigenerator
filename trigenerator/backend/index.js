@@ -214,7 +214,8 @@ async function generateSolution(modelName, collectionType, description) {
   const solutionTemplate = fs.readFileSync(solutionTemplatePath, 'utf-8');
 
   const prompt = `
-Using the model name "${modelName}" and collection type "${collectionType}", and the following description. Other than the solution code don't provide any extra lines of sentences:
+Using the model name "${modelName}" and collection type "${collectionType}", and the following description. 
+Other than the solution code don't provide any extra lines of sentences. The namspace should be dotnetapp and not the model names:
 
 ${description}
 
