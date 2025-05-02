@@ -1,88 +1,84 @@
-// File: Models/Plant.cs
+// File: Models/Astronaut.cs
 namespace dotnetapp.Models
 {
-    public class Plant
+    public class Astronaut
     {
-        public string PlantID { get; set; } // Unique identifier for the plant
-        public string PlantName { get; set; } // Name of the plant
-        public string Type { get; set; } // Type of plant (Indoor/Outdoor)
-        public decimal Price { get; set; } // Price of the plant
-        public int StockQuantity { get; set; } // Number of plants in stock
+        public int AstronautID { get; set; } // Auto-incremented in DB
+        public string Name { get; set; } // Astronaut's name
+        public string Specialization { get; set; } // Astronaut's specialization
+        public int ExperienceYears { get; set; } // Years of experience
+        public int MissionCount { get; set; } // Number of missions
+        public decimal TotalMissionHours { get; set; } // Calculated field (MissionCount * 200)
     }
 }
 
 
 using System;
-using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using dotnetapp.Models;
 
 namespace dotnetapp
 {
+    public static class ConnectionStringProvider
+    {
+        public static string ConnectionString { get; } = "User ID=sa;password=examlyMssql@123;server=localhost;Database=appdb;trusted_connection=false;Persist Security Info=False;Encrypt=False";
+    }
+
     public class Program
     {
-        private static List<Plant> plants = new List<Plant>();
+        static string connectionString = ConnectionStringProvider.ConnectionString;
 
         public static void Main(string[] args)
         {
             bool exit = false;
-
             while (!exit)
             {
-                Console.WriteLine("\nPlant Nursery Management Menu");
-                Console.WriteLine("1. Add Plant");
-                Console.WriteLine("2. Display All Plants");
-                Console.WriteLine("3. Update Plant");
-                Console.WriteLine("4. Delete Plant");
+                Console.WriteLine("\nSpace Mission Crew Management Menu");
+                Console.WriteLine("1. Add Astronaut Record");
+                Console.WriteLine("2. Display Limited Astronaut Records");
+                Console.WriteLine("3. Update Astronaut Record");
+                Console.WriteLine("4. Delete Astronaut Record");
                 Console.WriteLine("5. Exit");
                 Console.Write("Enter your choice (1-5): ");
 
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        try
+                        Astronaut newAstronaut = new Astronaut
                         {
-                            Plant newPlant = new Plant
-                            {
-                                PlantID = ReadInput("Enter Plant ID: "),
-                                PlantName = ReadInput("Enter Plant Name: "),
-                                Type = ReadInput("Enter Plant Type (Indoor/Outdoor): "),
-                                Price = decimal.Parse(ReadInput("Enter Plant Price: ")),
-                                StockQuantity = int.Parse(ReadInput("Enter Stock Quantity: "))
-                            };
-                            AddPlant(newPlant);
-                        }
-                        catch (FormatException ex)
-                        {
-                            Console.WriteLine("Input error: " + ex.Message);
-                        }
+                            Name = ReadInput("Enter Astronaut Name: "),
+                            Specialization = ReadInput("Enter Specialization: "),
+                            ExperienceYears = int.Parse(ReadInput("Enter Experience Years: ")),
+                            MissionCount = int.Parse(ReadInput("Enter Mission Count: "))
+                        };
+
+                        newAstronaut.TotalMissionHours = newAstronaut.MissionCount * 200; // Total hours calculation
+                        AddAstronautRecord(newAstronaut);
                         break;
 
                     case "2":
-                        DisplayPlants();
+                        int limit = int.Parse(ReadInput("Enter number of records to display: "));
+                        DisplayLimitedAstronautRecords(limit);
                         break;
 
                     case "3":
-                        string plantIDToUpdate = ReadInput("Enter Plant ID to update: ");
-                        try
+                        string nameToUpdate = ReadInput("Enter Astronaut Name to update: ");
+                        Astronaut updatedAstronaut = new Astronaut
                         {
-                            Plant updatedPlant = new Plant
-                            {
-                                PlantName = ReadInput("Enter New Plant Name: "),
-                                Type = ReadInput("Enter New Plant Type (Indoor/Outdoor): "),
-                                Price = decimal.Parse(ReadInput("Enter New Plant Price: ")),
-                                StockQuantity = int.Parse(ReadInput("Enter New Stock Quantity: "))
-                            };
-                            UpdatePlant(plantIDToUpdate, updatedPlant);
-                        }
-                        catch (FormatException ex)
-                        {
-                            Console.WriteLine("Input error: " + ex.Message);
-                        }
+                            Name = ReadInput("Enter New Name: "),
+                            Specialization = ReadInput("Enter New Specialization: "),
+                            ExperienceYears = int.Parse(ReadInput("Enter New Experience Years: ")),
+                            MissionCount = int.Parse(ReadInput("Enter New Mission Count: "))
+                        };
+
+                        updatedAstronaut.TotalMissionHours = updatedAstronaut.MissionCount * 200;
+                        UpdateAstronautRecord(nameToUpdate, updatedAstronaut);
                         break;
 
                     case "4":
-                        string plantIDToDelete = ReadInput("Enter Plant ID to delete: ");
-                        DeletePlant(plantIDToDelete);
+                        string nameToDelete = ReadInput("Enter Astronaut Name to delete: ");
+                        DeleteAstronautRecord(nameToDelete);
                         break;
 
                     case "5":
@@ -91,7 +87,7 @@ namespace dotnetapp
                         break;
 
                     default:
-                        Console.WriteLine("Invalid choice. Please enter a number between 1 and 5.");
+                        Console.WriteLine("Invalid choice.");
                         break;
                 }
             }
@@ -103,67 +99,121 @@ namespace dotnetapp
             return Console.ReadLine();
         }
 
-        public static void AddPlant(Plant plant)
+        public static void AddAstronautRecord(Astronaut astronaut)
         {
-            foreach (var p in plants)
+            if (astronaut.ExperienceYears < 0 || astronaut.MissionCount < 0)
             {
-                if (p.PlantID == plant.PlantID)
-                {
-                    Console.WriteLine("Plant ID already exists. Please use a unique Plant ID.");
-                    return;
-                }
-            }
-
-            plants.Add(plant);
-            Console.WriteLine("Plant added successfully.");
-        }
-
-        public static void DisplayPlants()
-        {
-            if (plants.Count == 0)
-            {
-                Console.WriteLine("No plants found.");
+                Console.WriteLine("Experience years and mission count must be non-negative values.");
                 return;
             }
 
-            foreach (var plant in plants)
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                Console.WriteLine($"Plant ID: {plant.PlantID}, Name: {plant.PlantName}, Type: {plant.Type}, Price: {plant.Price}, Stock: {plant.StockQuantity}");
+                SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM Astronauts", conn);
+                DataSet ds = new DataSet();
+                adapter.Fill(ds, "Astronauts");
+
+                DataTable table = ds.Tables["Astronauts"];
+                DataRow newRow = table.NewRow();
+
+                newRow["Name"] = astronaut.Name;
+                newRow["Specialization"] = astronaut.Specialization;
+                newRow["ExperienceYears"] = astronaut.ExperienceYears;
+                newRow["MissionCount"] = astronaut.MissionCount;
+                newRow["TotalMissionHours"] = astronaut.TotalMissionHours;
+
+                table.Rows.Add(newRow);
+
+                SqlCommandBuilder commandBuilder = new SqlCommandBuilder(adapter);
+                adapter.Update(ds, "Astronauts");
+
+                Console.WriteLine("Astronaut record added successfully.");
             }
         }
 
-        public static void UpdatePlant(string plantID, Plant updatedPlant)
+        public static void DisplayLimitedAstronautRecords(int limit)
         {
-            for (int i = 0; i < plants.Count; i++)
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                if (plants[i].PlantID == plantID)
-                {
-                    plants[i].PlantName = updatedPlant.PlantName;
-                    plants[i].Type = updatedPlant.Type;
-                    plants[i].Price = updatedPlant.Price;
-                    plants[i].StockQuantity = updatedPlant.StockQuantity;
+                SqlDataAdapter adapter = new SqlDataAdapter($"SELECT TOP {limit} * FROM Astronauts ORDER BY TotalMissionHours DESC", conn);
+                DataSet ds = new DataSet();
+                adapter.Fill(ds, "Astronauts");
 
-                    Console.WriteLine("Plant updated successfully.");
-                    return;
+                if (ds.Tables["Astronauts"].Rows.Count > 0)
+                {
+                    foreach (DataRow row in ds.Tables["Astronauts"].Rows)
+                    {
+                        Console.WriteLine($"Name: {row["Name"]}, Specialization: {row["Specialization"]}, Experience: {row["ExperienceYears"]} years, Missions: {row["MissionCount"]}, Total Hours: {row["TotalMissionHours"]}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No astronaut records found.");
                 }
             }
-
-            Console.WriteLine("No matching plant found with the provided Plant ID.");
         }
 
-        public static void DeletePlant(string plantID)
+        public static void UpdateAstronautRecord(string name, Astronaut updatedAstronaut)
         {
-            for (int i = 0; i < plants.Count; i++)
+            if (updatedAstronaut.ExperienceYears < 0 || updatedAstronaut.MissionCount < 0)
             {
-                if (plants[i].PlantID == plantID)
-                {
-                    plants.RemoveAt(i);
-                    Console.WriteLine("Plant deleted successfully.");
-                    return;
-                }
+                Console.WriteLine("Experience years and mission count must be non-negative values.");
+                return;
             }
 
-            Console.WriteLine("No matching plant found with the provided Plant ID.");
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM Astronauts", conn);
+                DataSet ds = new DataSet();
+                adapter.Fill(ds, "Astronauts");
+
+                DataRow[] rowsToUpdate = ds.Tables["Astronauts"].Select($"Name = '{name}'");
+
+                if (rowsToUpdate.Length > 0)
+                {
+                    DataRow row = rowsToUpdate[0];
+                    row["Name"] = updatedAstronaut.Name;
+                    row["Specialization"] = updatedAstronaut.Specialization;
+                    row["ExperienceYears"] = updatedAstronaut.ExperienceYears;
+                    row["MissionCount"] = updatedAstronaut.MissionCount;
+                    row["TotalMissionHours"] = updatedAstronaut.TotalMissionHours;
+
+                    SqlCommandBuilder commandBuilder = new SqlCommandBuilder(adapter);
+                    adapter.Update(ds, "Astronauts");
+
+                    Console.WriteLine("Astronaut record updated successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("No matching astronaut record found.");
+                }
+            }
+        }
+
+        public static void DeleteAstronautRecord(string name)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM Astronauts", conn);
+                DataSet ds = new DataSet();
+                adapter.Fill(ds, "Astronauts");
+
+                DataRow[] rowsToDelete = ds.Tables["Astronauts"].Select($"Name = '{name}'");
+
+                if (rowsToDelete.Length > 0)
+                {
+                    rowsToDelete[0].Delete();
+
+                    SqlCommandBuilder commandBuilder = new SqlCommandBuilder(adapter);
+                    adapter.Update(ds, "Astronauts");
+
+                    Console.WriteLine("Astronaut record deleted successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("No matching astronaut record found.");
+                }
+            }
         }
     }
 }
