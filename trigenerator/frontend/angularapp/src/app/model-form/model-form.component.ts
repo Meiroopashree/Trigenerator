@@ -8,6 +8,8 @@ import { ApiService } from '../services/api.service';
 })
 export class ModelFormComponent {
   selectedCollection: string = '';
+  selectedmethodType: string = '';
+  methodtypeOptions: string[] = ['Search', 'Sort', 'Total'];
   collectionOptions: string[] = ['List', 'Dictionary', 'HashSet', 'LinkedList'];
   modelSuggestions: string[] = [];
 
@@ -25,11 +27,11 @@ export class ModelFormComponent {
   constructor(private apiService: ApiService) {}
 
   getSuggestions() {
-    if (!this.selectedCollection) return;
+    if (!this.selectedCollection || !this.selectedmethodType) return;
 
     this.loading = true;
 
-    this.apiService.getModelSuggestions(this.selectedCollection).subscribe({
+    this.apiService.getModelSuggestions(this.selectedCollection, this.selectedmethodType).subscribe({
       next: (res) => {
         this.modelSuggestions = res.suggestions;
         this.selectedModel = '';
@@ -60,7 +62,8 @@ selectModel(suggestion: string) {
 
     this.loading = true;
 
-    this.apiService.generateDescription(this.selectedModel, this.selectedCollection).subscribe({
+    this.apiService.generateDescription(this.selectedModel, this.selectedCollection, this.selectedmethodType).subscribe({
+
       next: (res) => {
         this.generatedDescription = res.description;
         this.generatedSolution = '';
@@ -76,7 +79,7 @@ selectModel(suggestion: string) {
 
     this.loading = true;
 
-    this.apiService.generateSolution(this.selectedModel, this.selectedCollection, this.generatedDescription).subscribe({
+    this.apiService.generateSolution(this.selectedModel, this.selectedCollection, this.generatedDescription, this.selectedmethodType).subscribe({
       next: (res) => {
         this.generatedSolution = res.solution;
         this.generatedTestCases = '';
@@ -91,7 +94,7 @@ selectModel(suggestion: string) {
 
     this.loading = true;
 
-    this.apiService.generateTestCases(this.generatedSolution, this.selectedCollection).subscribe({
+    this.apiService.generateTestCases(this.generatedSolution, this.selectedCollection, this.selectedmethodType).subscribe({
       next: (res) => {
         this.generatedTestCases = res.testCases;
         this.loading = false;
