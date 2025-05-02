@@ -7,23 +7,23 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'https://codegenie-sgqr.onrender.com'; // Adjust if deployed elsewhere
+  private baseUrl = 'https://ide-bbefdebbdfedacd323990932fbbecbcccedtwo.premiumproject.examly.io/proxy/3001'; // Adjust if deployed elsewhere
 
   constructor(private http: HttpClient) {}
 
-  getModelSuggestions(selectedCollection: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/get-model-suggestions`, { selectedCollection });
+  getModelSuggestions(selectedCollection: string, selectedmethodType: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/get-model-suggestions`, { selectedCollection, selectedmethodType });
   }
 
-  generateDescription(modelName: string, collectionType: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/generate-description`, { modelName, collectionType });
+  generateDescription(modelName: string, collectionType: string, methodType: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/generate-description`, { modelName, collectionType, methodType });
   }
 
-  generateSolution(modelName: string, collectionType: string, description: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/generate-solution`, { modelName, collectionType, description });
+  generateSolution(modelName: string, collectionType: string, description: string, methodType: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/generate-solution`, { modelName, collectionType, description, methodType });
   }
 
-  generateTestCases(solution: string, collectionType: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/generate-testcases`, { solution, collectionType });
+  generateTestCases(solution: string, collectionType: string, methodType: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/generate-testcases`, { solution, collectionType, methodType });
   }
 }
