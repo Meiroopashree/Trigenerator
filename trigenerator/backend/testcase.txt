@@ -1,306 +1,312 @@
-using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using System.Data;
+using System.Data.SqlClient;
+using System.IO;
+using NUnit.Framework;
+using dotnetapp;
 using dotnetapp.Models;
- 
+using System.Reflection;
+
 namespace dotnetapp.Tests
 {
     [TestFixture]
-    public class PlantManagementTests
+    public class AstronautTests
     {
+        private string connectionString = ConnectionStringProvider.ConnectionString;
+        private StringWriter consoleOutput;
+        private TextWriter originalConsoleOut;
+
         [SetUp]
-        public void SetUp()
+        public void Setup()
         {
-            // Clear the plants List before each test
-            var plantsField = typeof(Program).GetField("plants", BindingFlags.NonPublic | BindingFlags.Static);
-            var plants = plantsField?.GetValue(null) as List<Plant>;
-            plants?.Clear();
- 
+            // Clear the database before each test
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("DELETE FROM Astronauts", conn);
+                cmd.ExecuteNonQuery();
+            }
+
+            // Redirect console output to capture messages
+            originalConsoleOut = Console.Out;
+            consoleOutput = new StringWriter();
+            Console.SetOut(consoleOutput);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
             // Reset console output
-            Console.SetOut(new System.IO.StringWriter());
+            Console.SetOut(originalConsoleOut);
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("DELETE FROM Astronauts", conn);
+                cmd.ExecuteNonQuery();
+            }
         }
- 
-        [Test, Order(1)]
-        public void Test_Plant_Class_Should_Exist()
+
+  [Test, Order(1)]
+          public async Task Test_Astronaut_Class_Should_Exist()
         {
-            Type plantType = typeof(Plant);
-            Assert.IsNotNull(plantType, "Plant class should exist.");
+            // Arrange
+            var assembly = typeof(Astronaut).Assembly;
+            Type astronautType = assembly.GetType("dotnetapp.Models.Astronaut");
+
+            // Assert
+            Assert.IsNotNull(astronautType, "Astronaut class should exist.");
         }
- 
+
         [Test, Order(2)]
-        public void Test_Plant_Properties_Should_Exist()
+          public async Task Test_Astronaut_Properties_Should_Exist()
         {
             // Arrange
-            Type plantType = typeof(Plant);
- 
+            Type astronautType = typeof(Astronaut);
+
             // Act
-            PropertyInfo plantIDProperty = plantType.GetProperty("PlantID");
-            PropertyInfo plantPlantNameProperty = plantType.GetProperty("PlantName");
-            PropertyInfo typeProperty = plantType.GetProperty("Type");
-            PropertyInfo priceProperty = plantType.GetProperty("Price");
-            PropertyInfo stockQuantityProperty = plantType.GetProperty("StockQuantity");
- 
+            PropertyInfo astronautIdProperty = astronautType.GetProperty("AstronautID");
+            PropertyInfo nameProperty = astronautType.GetProperty("Name");
+            PropertyInfo specializationProperty = astronautType.GetProperty("Specialization");
+            PropertyInfo experienceYearsProperty = astronautType.GetProperty("ExperienceYears");
+            PropertyInfo missionCountProperty = astronautType.GetProperty("MissionCount");
+            PropertyInfo totalMissionHoursProperty = astronautType.GetProperty("TotalMissionHours");
+
+
             // Assert
-            Assert.IsNotNull(plantIDProperty, "PlantID property should exist.");
-            Assert.IsNotNull(plantPlantNameProperty, "PlantName property should exist.");
-            Assert.IsNotNull(typeProperty, "Type property should exist.");
-            Assert.IsNotNull(priceProperty, "Price property should exist.");
-            Assert.IsNotNull(stockQuantityProperty, "StockQuantity property should exist.");
+            Assert.IsNotNull(astronautIdProperty, "AstronautID property should exist.");
+            Assert.IsNotNull(nameProperty, "Name property should exist.");
+            Assert.IsNotNull(specializationProperty, "Specialization property should exist.");
+            Assert.IsNotNull(experienceYearsProperty, "ExperienceYears property should exist.");
+            Assert.IsNotNull(missionCountProperty, "MissionCount property should exist.");
+            Assert.IsNotNull(totalMissionHoursProperty, "TotalMissionHours property should exist.");
+
         }
- 
+
         [Test, Order(3)]
-        public void Test_AddPlant_Method_Should_Exist()
+          public async Task Test_AddAstronautRecord_Method_Exists()
         {
-            var method = typeof(Program).GetMethod("AddPlant");
-            Assert.IsNotNull(method, "The AddPlant method should exist.");
+            // Check if AddAstronautRecord method exists
+            var method = typeof(Program).GetMethod("AddAstronautRecord");
+            Assert.IsNotNull(method, "The AddAstronautRecord method should exist in the Program class.");
         }
- 
+
         [Test, Order(4)]
-        public void Test_DisplayPlants_Method_Should_Exist()
+          public async Task Test_DisplayLimitedAstronautRecords_Method_Exists()
         {
-            var method = typeof(Program).GetMethod("DisplayPlants");
-            Assert.IsNotNull(method, "The DisplayPlants method should exist.");
+            // Check if DisplayLimitedAstronautRecords method exists
+            var method = typeof(Program).GetMethod("DisplayLimitedAstronautRecords");
+            Assert.IsNotNull(method, "The DisplayLimitedAstronautRecords method should exist in the Program class.");
         }
- 
+
         [Test, Order(5)]
-        public void Test_UpdatePlant_Method_Should_Exist()
+          public async Task Test_UpdateAstronautRecord_Method_Exists()
         {
-            var method = typeof(Program).GetMethod("UpdatePlant");
-            Assert.IsNotNull(method, "The UpdatePlant method should exist.");
+            // Check if UpdateAstronautRecord method exists
+            var method = typeof(Program).GetMethod("UpdateAstronautRecord");
+            Assert.IsNotNull(method, "The UpdateAstronautRecord method should exist in the Program class.");
         }
- 
+
         [Test, Order(6)]
-        public void Test_DeletePlant_Method_Should_Exist()
+          public async Task Test_DeleteAstronautRecord_Method_Exists()
         {
-            var method = typeof(Program).GetMethod("DeletePlant");
-            Assert.IsNotNull(method, "The DeletePlant method should exist.");
+            // Check if DeleteAstronautRecord method exists
+            var method = typeof(Program).GetMethod("DeleteAstronautRecord");
+            Assert.IsNotNull(method, "The DeleteAstronautRecord method should exist in the Program class.");
         }
- 
-        [Test, Order(7)]
-        public void Test_AddPlant_Should_Add_To_List()
-        {
-            // Create plant object using reflection
-            Type plantType = typeof(Plant);
-            var plant = Activator.CreateInstance(plantType);
-            plantType.GetProperty("PlantID").SetValue(plant, "P1");
-            plantType.GetProperty("PlantName").SetValue(plant, "Snake Plant");
-            plantType.GetProperty("Type").SetValue(plant, "Indoor");
-            plantType.GetProperty("Price").SetValue(plant, 15.99m);
-            plantType.GetProperty("StockQuantity").SetValue(plant, 25);
- 
-            // Act
-            var addPlantMethod = typeof(Program).GetMethod("AddPlant");
-            Assert.IsNotNull(addPlantMethod, "The AddPlant method should exist in the Program class.");
- 
-            using (var consoleOutput = new ConsoleOutput())
-            {
-                addPlantMethod.Invoke(null, new object[] { plant });
- 
-                // Capture console output
-                string output = consoleOutput.GetOutput();
-                Assert.IsTrue(output.ToLower().Contains("plant added successfully"), "Console output should contain 'Plant added successfully'.");
-            }
- 
-            // Assert
-            var plantsField = typeof(Program).GetField("plants", BindingFlags.NonPublic | BindingFlags.Static);
-            var plants = plantsField.GetValue(null) as List<Plant>;
- 
-            Assert.IsNotNull(plants, "Plants linked list should exist.");
-            Assert.IsTrue(plants.Any(p => p.PlantID == "P1"), "Plant should be added to the linked list.");
-        }
- 
-        [Test, Order(8)]
-        public void Test_DisplayPlants_Should_Display_All()
-        {
-            // Create plant objects using reflection
-            Type plantType = typeof(Plant);
-            var plant1 = Activator.CreateInstance(plantType);
-           plantType.GetProperty("PlantID").SetValue(plant1, "P1");
-            plantType.GetProperty("PlantName").SetValue(plant1, "Snake Plant");
-            plantType.GetProperty("Type").SetValue(plant1, "Indoor");
-            plantType.GetProperty("Price").SetValue(plant1, 15.99m);
-            plantType.GetProperty("StockQuantity").SetValue(plant1, 25);
- 
-            var plant2 = Activator.CreateInstance(plantType);
-            plantType.GetProperty("PlantID").SetValue(plant2, "P2");
-            plantType.GetProperty("PlantName").SetValue(plant2, "Rose Bush");
-            plantType.GetProperty("Type").SetValue(plant2, "Outdoor");
-            plantType.GetProperty("Price").SetValue(plant2, 20.50m);
-            plantType.GetProperty("StockQuantity").SetValue(plant2, 15);
- 
-            var addPlantMethod = typeof(Program).GetMethod("AddPlant");
-            addPlantMethod.Invoke(null, new object[] { plant1 });
-            addPlantMethod.Invoke(null, new object[] { plant2 });
- 
-            using (var consoleOutput = new ConsoleOutput())
-            {
-                var displayPlantsMethod = typeof(Program).GetMethod("DisplayPlants");
-                displayPlantsMethod.Invoke(null, null);
-                string output = consoleOutput.GetOutput();
- 
-                Assert.IsTrue(output.Contains("Snake Plant"), "Should contain Snake Plant.");
-                Assert.IsTrue(output.Contains("Rose Bush"), "Should contain Rose Bush.");
-            }
-        }
- 
-        [Test, Order(9)]
-        public void Test_DisplayPlants_Should_Handle_Nonexistent_Empty()
+
+
+       [Test, Order(7)]
+          public async Task Test_AddAstronautRecord_Should_Insert_Record()
         {
             // Arrange
-            var plantsField = typeof(Program).GetField("plants", BindingFlags.NonPublic | BindingFlags.Static);
-            var plants = plantsField.GetValue(null) as List<Plant>;
-            plants.Clear(); // Ensure no plants exist
- 
-            using (var consoleOutput = new ConsoleOutput())
+            Type astronautType = typeof(Astronaut);
+            object astronautInstance = Activator.CreateInstance(astronautType);
+            astronautType.GetProperty("Name").SetValue(astronautInstance, "Jane Smith");
+            astronautType.GetProperty("Specialization").SetValue(astronautInstance, "Pilot");
+            astronautType.GetProperty("ExperienceYears").SetValue(astronautInstance, 5);
+            astronautType.GetProperty("MissionCount").SetValue(astronautInstance, 5);
+            astronautType.GetProperty("TotalMissionHours").SetValue(astronautInstance, 1000.00m);
+
+            // Act
+            MethodInfo addAstronautMethod = typeof(Program).GetMethod("AddAstronautRecord");
+            addAstronautMethod.Invoke(null, new object[] { astronautInstance });
+
+            // Assert
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                // Act
-                var displayPlantsMethod = typeof(Program).GetMethod("DisplayPlants");
-                displayPlantsMethod.Invoke(null, null);
- 
-                // Assert
-                string output = consoleOutput.GetOutput().Trim();
-                Assert.AreEqual("No plants found.", output, "Should display 'No plants found.' when the plant list is empty.");
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Astronauts WHERE Name = 'Jane Smith'", conn);
+                int count = (int)cmd.ExecuteScalar();
+                Assert.AreEqual(1, count, "Astronaut record should be inserted into the database.");
             }
         }
- 
+
+        [Test, Order(8)]
+          public async Task Test_UpdateAstronautRecord_Should_Modify_Record()
+        {
+            // Arrange
+            InsertAstronautIntoDatabase("Johnson", "Medical Officer", 6, 2, 400.00m);
+
+            Type astronautType = typeof(Astronaut);
+            object updatedAstronautInstance = Activator.CreateInstance(astronautType);
+            astronautType.GetProperty("Name").SetValue(updatedAstronautInstance, "Jane Carter");
+            astronautType.GetProperty("Specialization").SetValue(updatedAstronautInstance, "Pilot");
+            astronautType.GetProperty("ExperienceYears").SetValue(updatedAstronautInstance, 5);
+            astronautType.GetProperty("MissionCount").SetValue(updatedAstronautInstance, 5);
+            astronautType.GetProperty("TotalMissionHours").SetValue(updatedAstronautInstance, 1000.00m);
+
+            // Act
+            var output = CaptureConsoleOutput(() =>
+            {
+                MethodInfo updateAstronautMethod = typeof(Program).GetMethod("UpdateAstronautRecord");
+                updateAstronautMethod.Invoke(null, new object[] { "Johnson", updatedAstronautInstance });
+            });
+
+            // Assert
+            Assert.IsTrue(output.ToLower().Contains("astronaut record updated successfully"));
+        }
+
+        [Test, Order(9)]
+          public async Task Test_DisplayLimitedAstronautRecords_Should_Output_Records()
+        {
+            // Arrange
+            InsertAstronautIntoDatabase("Jane Carter", "Pilot", 12, 5, 1000.00m);
+            InsertAstronautIntoDatabase("Sarah", "Engineer", 8, 3, 600.00m);
+
+            // Act
+            var output = CaptureConsoleOutput(() =>
+            {
+                MethodInfo displayAstronautsMethod = typeof(Program).GetMethod("DisplayLimitedAstronautRecords");
+                displayAstronautsMethod.Invoke(null, new object[] { 2 });
+            });
+
+            // Assert
+            Assert.IsTrue(output.ToLower().Contains("jane carter"));
+            Assert.IsTrue(output.ToLower().Contains("sarah"));
+        }
+
         [Test, Order(10)]
-        public void Test_UpdatePlant_Should_Modify_Existing_Plant()
+          public async Task Test_DeleteAstronautRecord_Should_Remove_Record()
         {
-            // Create old plant and updated plant objects using reflection
-            Type plantType = typeof(Plant);
-            var oldPlant = Activator.CreateInstance(plantType);
-            plantType.GetProperty("PlantID").SetValue(oldPlant, "P1");
-            plantType.GetProperty("PlantName").SetValue(oldPlant, "Snake Plant");
-            plantType.GetProperty("Type").SetValue(oldPlant, "Indoor");
-            plantType.GetProperty("Price").SetValue(oldPlant, 15.99m);
-            plantType.GetProperty("StockQuantity").SetValue(oldPlant, 25);
- 
-            var updatedPlant = Activator.CreateInstance(plantType);
-            plantType.GetProperty("PlantName").SetValue(updatedPlant, "Aloe Vera");
-            plantType.GetProperty("Type").SetValue(updatedPlant, "Indoor");
-            plantType.GetProperty("Price").SetValue(updatedPlant, 12.75m);
-            plantType.GetProperty("StockQuantity").SetValue(updatedPlant, 30);
- 
-            var addPlantMethod = typeof(Program).GetMethod("AddPlant");
-            Assert.IsNotNull(addPlantMethod, "The AddPlant method should exist in the Program class.");
-            addPlantMethod.Invoke(null, new object[] { oldPlant });
- 
-            var updatePlantMethod = typeof(Program).GetMethod("UpdatePlant");
-            Assert.IsNotNull(updatePlantMethod, "The UpdatePlant method should exist in the Program class.");
- 
-            using (var consoleOutput = new ConsoleOutput())
+            // Arrange
+            InsertAstronautIntoDatabase("Brown", "Scientist", 15, 7, 1400.00m);
+
+            // Act
+            var output = CaptureConsoleOutput(() =>
             {
-                updatePlantMethod.Invoke(null, new object[] { "P1", updatedPlant });
- 
-                // Capture console output
-                string output = consoleOutput.GetOutput();
-                Assert.IsTrue(output.ToLower().Contains("plant updated successfully"), "Console output should contain 'Plant updated successfully'.");
+                MethodInfo deleteAstronautMethod = typeof(Program).GetMethod("DeleteAstronautRecord");
+                deleteAstronautMethod.Invoke(null, new object[] { "Brown" });
+            });
+
+            // Assert
+            Assert.IsTrue(output.Contains("Astronaut record deleted successfully"));
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Astronauts WHERE Name = 'Brown'", conn);
+                int count = (int)cmd.ExecuteScalar();
+                Assert.AreEqual(0, count, "Astronaut record should be deleted from the database.");
             }
- 
-            var plantsField = typeof(Program).GetField("plants", BindingFlags.NonPublic | BindingFlags.Static);
-            var plants = plantsField.GetValue(null) as List<Plant>;
- 
-            Assert.IsNotNull(plants, "Plants linked list should exist.");
-            Assert.IsTrue(plants.Any(p => p.PlantName == "Aloe Vera"), "Plant should be updated.");
         }
- 
- 
+
         [Test, Order(11)]
-        public void Test_UpdatePlant_Should_Handle_Nonexistent_Plant()
-        {
-            using (var consoleOutput = new ConsoleOutput())
-            {
-                // Act
-                var updatePlantMethod = typeof(Program).GetMethod("UpdatePlant");
- 
-                // Create a new plant object to use for updating
-                Type plantType = typeof(Plant);
-               var updatedPlant = Activator.CreateInstance(plantType);
-                plantType.GetProperty("PlantName").SetValue(updatedPlant, "Aloe Vera");
-                plantType.GetProperty("Type").SetValue(updatedPlant, "Indoor");
-                plantType.GetProperty("Price").SetValue(updatedPlant, 12.75m);
-                plantType.GetProperty("StockQuantity").SetValue(updatedPlant, 30);
- 
-                // Try to update a non-existent plant
-                updatePlantMethod.Invoke(null, new object[] { "NonExistentID", updatedPlant });
- 
-                // Assert
-                string output = consoleOutput.GetOutput().Trim();
-                Assert.IsTrue(output.Contains("No matching plant found"), "Output should contain 'No matching plant found.' when trying to update a non-existent plant.");
-            }
-        }
- 
-        [Test, Order(12)]
-        public void Test_DeletePlant_Should_Remove_From_List()
-        {
-            // Create plant object using reflection
-            Type plantType = typeof(Plant);
-            var plant = Activator.CreateInstance(plantType);
-            plantType.GetProperty("PlantID").SetValue(plant, "P1");
-            plantType.GetProperty("PlantName").SetValue(plant, "Snake Plant");
-            plantType.GetProperty("Type").SetValue(plant, "Indoor");
-            plantType.GetProperty("Price").SetValue(plant, 15.99m);
-            plantType.GetProperty("StockQuantity").SetValue(plant, 25);
- 
-            var addPlantMethod = typeof(Program).GetMethod("AddPlant");
-            Assert.IsNotNull(addPlantMethod, "The AddPlant method should exist in the Program class.");
-            addPlantMethod.Invoke(null, new object[] { plant });
- 
-            var deletePlantMethod = typeof(Program).GetMethod("DeletePlant");
-            Assert.IsNotNull(deletePlantMethod, "The DeletePlant method should exist in the Program class.");
- 
-            using (var consoleOutput = new ConsoleOutput())
-            {
-                deletePlantMethod.Invoke(null, new object[] { "P1" });
- 
-                // Capture console output
-                string output = consoleOutput.GetOutput();
-                Assert.IsTrue(output.ToLower().Contains("plant deleted successfully"), "Console output should contain 'Plant deleted successfully'.");
-            }
- 
-            var plantsField = typeof(Program).GetField("plants", BindingFlags.NonPublic | BindingFlags.Static);
-            var plants = plantsField.GetValue(null) as List<Plant>;
- 
-            Assert.IsNotNull(plants, "Plants linked list should exist.");
-            Assert.IsFalse(plants.Any(p => p.PlantID == "P1"), "Plant should be removed from the linked list.");
-        }
- 
- 
-        [Test, Order(13)]
-        public void Test_DeletePlant_Should_Handle_Nonexistent_Plant()
-        {
-            using (var consoleOutput = new ConsoleOutput())
-            {
-                var deletePlantMethod = typeof(Program).GetMethod("DeletePlant");
-                deletePlantMethod.Invoke(null, new object[] { "UnknownID" });
- 
-                string output = consoleOutput.GetOutput();
-                Assert.IsTrue(output.Contains("No matching plant found"), "Should display messtype for nonexistent plant.");
-            }
-        }
- 
-        // Helper class to capture console output
-        public class ConsoleOutput : IDisposable
-        {
-            private readonly System.IO.StringWriter _stringWriter;
-            private readonly System.IO.TextWriter _originalOutput;
- 
-            public ConsoleOutput()
-            {
-                _stringWriter = new System.IO.StringWriter();
-                _originalOutput = Console.Out;
-                Console.SetOut(_stringWriter);
-            }
- 
-            public string GetOutput() => _stringWriter.ToString();
- 
-            public void Dispose()
-            {
-                Console.SetOut(_originalOutput);
-                _stringWriter.Dispose();
-            }
-        }
+public async Task Test_DisplayLimitedAstronautRecords_Should_Handle_No_Records_Found()
+{
+    // Act - Capture console output
+    var output = CaptureConsoleOutput(() =>
+    {
+        MethodInfo displayAstronautsMethod = typeof(Program).GetMethod("DisplayLimitedAstronautRecords");
+        displayAstronautsMethod.Invoke(null, new object[] { 5 }); // Attempt to display records when the table is empty
+    });
+ Console.WriteLine(output);
+    // Assert
+    Assert.IsTrue(output.ToLower().Contains("no astronaut records found"), "The message 'No astronaut records found' should be displayed.");
+}
+
+[Test, Order(12)]
+public async Task Test_DeleteAstronautRecord_Should_Handle_No_Record_Found()
+{
+    // Act - Capture console output
+    var output = CaptureConsoleOutput(() =>
+    {
+        MethodInfo deleteAstronautMethod = typeof(Program).GetMethod("DeleteAstronautRecord");
+        deleteAstronautMethod.Invoke(null, new object[] { "NonExistentAstronaut" });
+    });
+    // Assert
+    Assert.IsTrue(output.ToLower().Contains("no matching astronaut record found"));
+}
+
+[Test, Order(13)]
+public async Task Test_UpdateAstronautRecord_Should_Handle_No_Record_Found()
+{
+    // Arrange
+    Type astronautType = typeof(Astronaut);
+    object updatedAstronautInstance = Activator.CreateInstance(astronautType);
+    astronautType.GetProperty("Specialization").SetValue(updatedAstronautInstance, "Pilot");
+    astronautType.GetProperty("ExperienceYears").SetValue(updatedAstronautInstance, 5);
+    astronautType.GetProperty("MissionCount").SetValue(updatedAstronautInstance, 5);
+    astronautType.GetProperty("TotalMissionHours").SetValue(updatedAstronautInstance, 1000.00m);
+
+    // Act - Capture console output
+    var output = CaptureConsoleOutput(() =>
+    {
+        MethodInfo updateAstronautMethod = typeof(Program).GetMethod("UpdateAstronautRecord");
+        updateAstronautMethod.Invoke(null, new object[] { "NonExistentAstronaut", updatedAstronautInstance }); // Attempt to update a non-existent astronaut
+    });
+
+    // Assert
+    Assert.IsTrue(output.ToLower().Contains("no matching astronaut record found"));
+}
+
+
+   private void InsertAstronautIntoDatabase(string name, string specialization, decimal experienceYears, int missionCount, decimal totalMissionHours)
+{
+    using (SqlConnection conn = new SqlConnection(connectionString))
+    {
+        // Open connection
+        conn.Open();
+
+        // Create a DataAdapter to fetch the schema of the Astronauts table
+        SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM Astronauts", conn);
+        SqlCommandBuilder commandBuilder = new SqlCommandBuilder(adapter);
+
+        // Fill a DataSet with the Astronauts table structure
+        DataSet dataSet = new DataSet();
+        adapter.Fill(dataSet, "Astronauts");
+
+        // Access the DataTable from the DataSet
+        DataTable astronautsTable = dataSet.Tables["Astronauts"];
+
+        // Create a new DataRow and populate it with data
+        DataRow newRow = astronautsTable.NewRow();
+        newRow["Name"] = name;
+        newRow["Specialization"] = specialization;
+        newRow["ExperienceYears"] = experienceYears;
+        newRow["MissionCount"] = missionCount;
+        newRow["TotalMissionHours"] = totalMissionHours;
+
+
+        // Add the new DataRow to the DataTable
+        astronautsTable.Rows.Add(newRow);
+
+        // Use the DataAdapter to update the database with changes made in the DataSet
+        adapter.Update(dataSet, "Astronauts");
+
+        Console.WriteLine("Astronaut record inserted successfully using disconnected architecture.");
     }
+}
+
+
+        private string CaptureConsoleOutput(Action action)
+        {
+            consoleOutput.GetStringBuilder().Clear();
+            action.Invoke();
+            return consoleOutput.ToString();
+        }
+ 
+
+    }
+
 }
