@@ -15,6 +15,18 @@
     </option>
   </select>
 
+  <!-- Method Type Dropdown -->
+<div>
+  <label for="methodType">Select Method Type:</label>
+  <select id="methodType" [(ngModel)]="selectedmethodType">
+    <option value="">-- Select Method --</option>
+    <option *ngFor="let option of methodtypeOptions" [value]="option">
+      {{ option }}
+    </option>
+  </select>
+</div>
+
+
   <!-- Button for suggestions -->
   <button (click)="getSuggestions()">Get Suggestions</button>
 
