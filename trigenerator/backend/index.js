@@ -78,9 +78,9 @@ async function sendToAI(messages) {
 // ✅ Function to generate model suggestions based on selected collection
 
 // ✅ Function to generate model suggestions based on selected collection
-async function generateModelSuggestions(selectedCollection) {
+async function generateModelSuggestions(selectedCollection, selectedmethodType) {
   const prompt = `
-  You are a .NET coding assistant. Generate 10 unique model class names that can be implemented using a ${selectedCollection} collection in C#.
+  You are a .NET coding assistant. Generate 10 unique model class names that can be implemented using a ${selectedCollection} collection and based on the method ${selectedmethodType} in C#.
   Each model name should represent a real-world entity or use case that naturally fits the selected collection type's characteristics.
   Do NOT include the word "${selectedCollection}" or "List", "Set", "Unique", "Distinct" or "Collection" in the names. Just return clean, meaningful class names related to real-world use cases. 
   Avoid duplicates, and cover variety of real-world domains. I should have only 6 attributes in total. Provide the model names should and crisp.
@@ -134,9 +134,9 @@ async function generateModelSuggestions(selectedCollection) {
 
 app.post('/get-model-suggestions', async (req, res) => {
 
-  const { selectedCollection } = req.body;
+  const { selectedCollection, selectedmethodType  } = req.body;
 
-  if (!selectedCollection) {
+  if (!selectedCollection || !selectedmethodType) {
 
     return res.status(400).json({ error: "Collection type is required." });
 
@@ -144,7 +144,7 @@ app.post('/get-model-suggestions', async (req, res) => {
 
   try {
 
-    const suggestions = await generateModelSuggestions(selectedCollection);
+    const suggestions = await generateModelSuggestions(selectedCollection, selectedmethodType );
 
     res.json({ suggestions });
 
@@ -161,16 +161,29 @@ const fs = require('fs');
 const path = require('path');
 
 // ✅ Function to generate a question description
-async function generateDescription(modelName, collectionType) {
+async function generateDescription(modelName, collectionType, methodType) {
   const templatePath = path.join(__dirname, 'description.txt');
   const template = fs.readFileSync(templatePath, 'utf-8');
 
   const prompt = `
-Using the structure below, generate a new question description based on the model name "${modelName}" and collection type "${collectionType}". 
-Use only single ID field in the model. Don't use any TimeSpan, DateTime datatype use only int, string, decimal. 
-When generating a description, ensure that each use case includes some variation — such as modifications in the update or delete logic, or the addition of functionalities like search or sort operations to the overall methodology.
-It should include only 6 or 5 methods. When search or sort functionality is added the total methods should be 6.
-When modifying the update or delete method the total methods should be 5. Introduce variations in the update and delete methods, such as updating or deleting by non-ID attributes.
+  Using the structure below, generate a new question description based on the model name "${modelName}", method type "${methodType}", and collection type "${collectionType}".
+  
+  The model should include exactly 6 methods in total:
+  - 1 method to add a new item
+  - 1 method to get all items
+  - 1 method to update an item (use a non-ID attribute for variation)
+  - 1 method to delete an item (use a non-ID attribute for variation)
+  - 1 additional method based on the selected method type: either 'Search', 'Sort', or 'Total'
+  - 1 method to exit the program
+  
+  Only one of the additional functionalities should be included based on the value of "${methodType}". If method type is:
+  - "Search" → include a method to search items by a specific string attribute
+  - "Sort" → include a method to sort items by a specific property
+  - "Total" → include a method that totals a specific numeric property in the collection
+  
+  Do not include more than 6 methods total.
+  
+  Use only one ID field in the model. Do not use TimeSpan or DateTime datatypes — only use int, string, and decimal.
 
 ${template}
 
@@ -193,14 +206,14 @@ Make sure the response includes a Title and a Description, and clearly states ho
 }
 
 app.post('/generate-description', async (req, res) => {
-  const { modelName, collectionType } = req.body;
+  const { modelName, collectionType, methodType } = req.body;
 
-  if (!modelName || !collectionType) {
+  if (!modelName || !collectionType || !methodType) {
     return res.status(400).json({ error: "Model name and collection type are required." });
   }
 
   try {
-    const description = await generateDescription(modelName, collectionType);
+    const description = await generateDescription(modelName, collectionType, methodType);
     res.json({ description });
   } catch (error) {
     console.error("Failed to generate description:", error);
@@ -209,12 +222,12 @@ app.post('/generate-description', async (req, res) => {
 });
 
 
-async function generateSolution(modelName, collectionType, description) {
+async function generateSolution(modelName, collectionType, description, methodType) {
   const solutionTemplatePath = path.join(__dirname, 'solution.txt');
   const solutionTemplate = fs.readFileSync(solutionTemplatePath, 'utf-8');
 
   const prompt = `
-Using the model name "${modelName}" and collection type "${collectionType}", and the following description. 
+Using the model name "${modelName}", method type "${methodType}" and collection type "${collectionType}", and the following description. 
 Other than the solution code don't provide any extra lines of sentences. The namspace should be dotnetapp and not the model names:
 
 ${description}
@@ -241,14 +254,14 @@ Ensure the solution includes all necessary logic relevant to the description and
 }
 
 app.post('/generate-solution', async (req, res) => {
-  const { modelName, collectionType, description } = req.body;
+  const { modelName, collectionType, description, methodType } = req.body;
 
-  if (!modelName || !collectionType || !description) {
+  if (!modelName || !collectionType || !description ||!methodType) {
     return res.status(400).json({ error: "Model name, collection type, and description are required." });
   }
 
   try {
-    const solution = await generateSolution(modelName, collectionType, description);
+    const solution = await generateSolution(modelName, collectionType, description, methodType);
     res.json({ solution });
   } catch (error) {
     console.error("Solution generation error:", error);
@@ -258,7 +271,7 @@ app.post('/generate-solution', async (req, res) => {
 
 
 // ✅ Function to generate test cases
-async function generateTestCases(solution, collectionType) {
+async function generateTestCases(solution, collectionType, methodType) {
   const testCaseTemplatePath = path.join(__dirname, 'testcase.txt');
   const testCaseTemplate = fs.readFileSync(testCaseTemplatePath, 'utf-8');
 
@@ -266,6 +279,7 @@ async function generateTestCases(solution, collectionType) {
 Based on the following model information:
 Solution: ${solution}
 Collection Type: ${collectionType}.
+Method Type: ${methodType}
 Using the format below:
 ${testCaseTemplate}
 
@@ -289,14 +303,14 @@ Generate appropriate test cases that validate the functionality, edge cases, and
 
 
 app.post('/generate-testcases', async (req, res) => {
-  const { solution, collectionType } = req.body;
+  const { solution, collectionType, methodType } = req.body;
 
-  if (!solution || !collectionType ) {
+  if (!solution || !collectionType ||!methodType ) {
     return res.status(400).json({ error: "Solution, collection type are required." });
   }
 
   try {
-    const testCases = await generateTestCases(solution, collectionType);
+    const testCases = await generateTestCases(solution, collectionType, methodType);
     res.json({ testCases });
   } catch (error) {
     console.error("Test case generation error:", error);
