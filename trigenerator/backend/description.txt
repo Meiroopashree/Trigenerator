@@ -1,110 +1,156 @@
-Title: Plant Nursery Management System
+Title: Space Mission Crew Management System
 
 Description: 
-You need to develop the Plant Nursery Management System, a console-based application in C# that simplifies managing plant records. Use a List to store and manage the collection of plants. Implement a menu-driven interface with options to add, display, update, and delete plant information. Ensure error handling with try-catch blocks to manage invalid data inputs, particularly using FormatException.
+You need to create the Missions table in the appdb database with the necessary columns for mission records. Then, develop a console-based C# application using ADO.NET to perform Create, Read, Update, and Delete (CRUD) operations on the Missions table in a SQL Server database. The application should enable users to add new mission records, display mission records (with a limit), update mission records, and delete mission records by mission name. The project should be implemented exclusively using a disconnected architecture with SqlDataAdapter, DataSet, and DataTable. All classes, properties, and methods should be made public.
 
-Classes and Methods
+Classes and Properties
+Astronaut Class (Models/Astronaut.cs):
 
-1. Plant Class (Models/Plant.cs)	
+The Astronaut class represents an astronaut record with the following public properties:
 
-Purpose: Represents an individual plant record in the system.
+AstronautID (int): Unique identifier for each astronaut record. Auto-incremented in the database.
+Name (string): Name of the astronaut.
+Specialization (string): Specialization of the astronaut.
+ExperienceYears (int): Years of experience in space missions.
+MissionCount (int): Number of space missions the astronaut has participated in.
+TotalMissionHours (decimal): Total hours spent in space across all missions (MissionCount * 200).
 
-Properties:
-
-PlantID (string): A unique identifier for the plant.
-PlantName (string): The name of the plant.
-Type (string): The type of plant (e.g., Indoor, Outdoor).
-Price (decimal): The price of the plant.
-StockQuantity (int): The number of plants available in stock.
 Access Modifier: public
 
+Database Details:
 
-2. Program Class (Program.cs)
+Database Name: appdb
+Table Name: Astronauts
+Ensure that the database connection is properly established using the ConnectionStringProvider class in the file Program.cs.
+Use the below connection string to connect the MsSql Server
+public static string ConnectionString { get; } = "User ID=sa;password=examlyMssql@123; server=localhost;Database=appdb;trusted_connection=false;Persist Security Info=False;Encrypt=False";
 
-Purpose: Acts as the entry point for the application, containing the business logic to manage plant records.
 
-Properties:
+To Work with SQLServer:
 
-plants (List<Plant>): A static list of Plant objects used to manage and store plant records.
-Access Modifier: private
+(Open a New Terminal) type the below commands
+
+sqlcmd -U sa 
+
+password: examlyMssql@123
+
+1> create database appdb
+
+2>go
+
+
+1>use appdb
+
+2>go
+
+
+1> create table TableName(columnName datatype,...)
+
+2> go
+
+
+1> insert into TableName values(" "," ",....)
+
+2> go
+
 
 Methods:
 
-Main(string[] args):
-
-Purpose: Handles the application's flow through a menu-driven interface with the following options:
-
-Add Plant: Prompts the user for plant details and adds the plant record.
-Display All Plants: Displays the list of all plant records.
-Update Plant: Updates an existing plant's details based on the Plant ID.
-Delete Plant: Deletes a plant by its ID.
-Exit: Terminates the application.
-Displays the message "Invalid choice. Please enter a number between 1 and 5." if the input is outside the range of 1–5.
+Define the following methods inside the Program class, located in the Program.cs file.
 
 
 
-AddPlant(Plant plant)
+1. AddAstronautRecord(Astronaut astronaut)
 
-Purpose: Adds a new plant to the plants list.
-
-Access Modifier: public
-
-Declaration Modifier: static
-
-Return Type: void
-
-Validation Logic:
-
-Ensures the PlantID is unique in the list.
-				Error Message: "Plant ID already exists. Please use a unique Plant ID."
-
-Success Message: "Plant added successfully."
-
-
-DisplayPlants()
-
-Displays all plant records in the list.
-
+Inserts a new astronaut record into the Astronauts table. The method validates the input for ExperienceYears and MissionCount before adding the record to the DataTable. If the validation fails, an error message is displayed, and the operation is terminated.
+Parameters: astronaut: An object of the Astronaut class containing the details of the astronaut to be added.
 Access Modifier: public
 Declaration Modifier: static
 Return Type: void
-Success Message: Prints each plant's details in the format:
-"Plant ID: {plant.PlantID}, Name: {plant.PlantName}, Type: {plant.Type}, Price: {plant.Price}, Stock: {plant.StockQuantity}"
-Error Message: "No plants found." (if the list is empty).
+Console Messages:
+On success: 
+Astronaut record added successfully.
+If ExperienceYears or MissionCount is less than 0:
+Experience years and mission count must be non-negative values.
 
 
-UpdatePlant(string plantID, Plant updatedPlant)
-
-Updates the details of an existing plant based on the provided plant ID.
-
+2. DisplayLimitedAstronautRecords(int limit)
+Fetches a limited number of astronaut records from the Astronauts table and displays them. 
+Parameters: limit: The maximum number of astronaut records to display.
 Access Modifier: public
 Declaration Modifier: static
 Return Type: void
-Success Message: "Plant updated successfully."
-Error Message: "No matching plant found with the provided Plant ID." (if the PlantID is not found).
+Console Messages: 
+If records are found: 
+Name: {row["Name"]}, Specialization: {row["Specialization"]}, Experience: {row["ExperienceYears"]} years, Missions: {row["MissionCount"]}, Total Hours: {row["TotalMissionHours"]}
+If no records are found: 
+No astronaut records found.
 
 
-DeletePlant(string plantID)
+3. UpdateAstronautRecord(string name, Astronaut updatedAstronaut)
 
-Removes a plant record from the list based on the provided plant ID.
-
+Updates the details of an existing astronaut record in the Astronauts table. The method validates the input for ExperienceYears and MissionCount before updating the record. If the validation fails, an error message is displayed, and the operation is terminated.
+Parameters: 
+name: The name of the astronaut to be updated.
+updatedAstronautt: An object of the Astronaut class containing the updated details.
 Access Modifier: public
 Declaration Modifier: static
 Return Type: void
-Success Message: "Plant deleted successfully."
-Error Message: "No matching plant found with the provided Plant ID." (if the PlantID is not found).
+Console Messages:
+If the astronaut is successfully updated:
+Astronaut record updated successfully.
+If no record is found:
+No matching astronaut record found.
+If ExperienceYears or MissionCount is less than 0:
+Experience years and mission count must be non-negative values.
 
 
-Menu Options:
+4. DeleteAstronautRecord(string name)
 
-	1. Add Plant: prompts for the plant's details. After gathering the details, it calls the AddPlant(Plant plant) method to add the new plant record to the list
+Deletes a astronaut record from the Astronauts table. 
+Parameters:
+name: The name of the astronaut to be deleted.
+Access Modifier: public
+Declaration Modifier: static
+Return Type: void
+Console Messages:
+If the astronaut is successfully deleted:
+Astronaut record deleted successfully.
+If no record is found:
+No matching astronaut record found.
 
-	2. Display All Plants: Displays all plant records by calling the DisplayPlants() method.
 
-	3. Update Plant: Prompts for the Plant ID and Plant details to update. After gathering the Plant ID, it will call the UpdatePlant(string plantID, Plant updatedPlant) method to update the plant details.
+Main Menu:
 
-	4. Delete Plant: Prompts for the Plant ID. After gathering the Plant ID, it will call the DeletePlant(string plantID) method to remove the plant record from the list.
+The main menu serves as the user interface for interacting with the system. It provides the following options:
 
-	5. Exit: Exits the application with the message: "Exiting the application..."
 
-Invalid Input: Displays the message: "Invalid choice. Please enter a number between 1 and 5."
+
+Space Mission Crew Management Menu
+
+1. Add Astronaut Record: Prompts for the astronaut details. After gathering the details, it calls the AddAstronautRecord(Astronaut astronaut) method to add the new astronaut record to the system.
+
+2. Display Limited Astronaut Records: Displays limited astronaut records by calling the DisplayLimitedAstronautRecords(int limit) method.
+
+3. Update Astronaut Record: Prompts for the astronaut name to identify the record to update. After gathering the input, it calls the UpdateAstronautRecord(string name, Astronaut updatedAstronaut) method to modify the relevant astronaut details if the record exists. It also validates fields like ExperienceYears and MissionCount to ensure they are non-negative before updating.
+
+4. Delete Astronaut Record: Prompts for the Name of the astronaut to be deleted. After gathering the input, it calls the DeleteAstronautRecord(string name) method to remove all astronaut records of the specified name from the system if they exist.
+
+5. Exit: Exits the application with the message "Exiting the application..."
+
+Invalid choice - Displays "Invalid choice."
+
+
+Commands to Run the Project:
+
+cd dotnetapp - Select the dotnet project folder
+dotnet restore - This command will restore all the required packages to run the application.
+dotnet run - To run the application
+dotnet build - To build and check for errors
+dotnet clean - If the same error persists clean the project and build again
+dotnet add package package_name --version 6.0 - Any package if required you can install by the above command. The package that you are installing should support the .Net 6.0 version.
+Note:
+
+1. Do not change the class names. 
+
+2. Do not change the skeleton (Structure of the project given).
